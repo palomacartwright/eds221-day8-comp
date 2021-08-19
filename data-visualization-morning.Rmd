@@ -22,7 +22,7 @@ library(gapminder)
 library(sf)
 
 ```
-
+# Working with lizards
 ## Get the lizards data 
 
 ```{r}
@@ -177,5 +177,143 @@ ggplot(data = lizards, aes(x = total_length, y = weight)) +
     axis.text.x = element_text(color = "orange"), 
     axis.title = element_text(color = "yellow", size = 10)
   )
+```
+# Day 9 Work: Part 2 of data visualization
+
+## ggrepel
+
+```{r}
+
+ww_lizards <- lizards %>% 
+  filter(common_name == "western whiptail", site == "sand")
+
+ggplot(data = ww_lizards, aes(x = total_length, y = weight)) +
+  geom_point() +
+  geom_text_repel(aes(label = toe_num), size = 2, max.overlaps = 20)
+
+```
+
+## Using gapminder dataset 
+
+```{r}
+gapminder_Europe <- gapminder %>% 
+  filter(continent == "Europe",  year == "2007")
+
+ggplot(data = gapminder_Europe, aes(x= gdpPercap, y = lifeExp)) +
+  geom_point() +
+  geom_text_repel(aes(label = country), size = 3)
+```
+
+## gghighlight
+
+```{r}
+
+p <- ggplot(lizards, aes(x = total_length, y = weight)) +
+  geom_point()
+
+p + gghighlight(toe_num == 250, label_key = toe_num)
+```
+
+```{r}
+
+q <- ggplot(data = lizards, aes(x = total_length, y = weight)) +
+  geom_line(aes(color = common_name)) +
+  gghighlight(max(weight) > 30)
+
+q 
+
+```
+
+## Patchwork for compoint figures 
+
+```{r}
+p / q & # p is on top of q 
+  theme_minimal()
+
+p | q #these are side by side 
+
+```
+## A few new graph types 
+
+### Marginal plots 
+
+```{r}
+
+whiptails <- lizards %>% 
+  filter(common_name == "western whiptail") %>% 
+  drop_na(total_length, weight)
+
+ggplot(data = whiptails, aes(x = total_length, y = weight)) +
+  geom_point() +
+  geom_rug()
+
+```
+
+Marginal plot with boxplots 
+
+```{r}
+
+my_plot <- ggplot(whiptails, aes(x = total_length, y = weight)) +
+  geom_point(aes(color = sex), size = 2, shape = 22) +
+  scale_color_manual(
+    values = c("cyan3", "black", "gold"),
+    name = "Sex:",
+    labels = c("Female", "Juvenile", "Male")
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+ggMarginal(my_plot, type = "boxplot", groupColour = TRUE)
+
+
+```
+
+### Beeswarm plot
+
+```{r}
+
+ggplot(data = whiptails, aes(x = sex, y = weight)) +
+  geom_beeswarm(aes(color = sex)) +
+  geom_boxplot(fill = NA)
+
+```
+
+### Heatmap with geom_tile()
+
+```{r}
+
+lizards_counts <- lizards %>% 
+  mutate(date = lubridate::mdy(date)) %>% 
+  group_by(year = lubridate::year(date), common_name) %>% 
+  summarize(count = n())
+
+```
+
+```{r}
+
+ggplot(data = lizards_counts, aes(x = year, y = common_name)) +
+  geom_tile(aes(fill = count)) +
+  geom_text(aes(label = count), color = "white", size = 2) +
+  scale_fill_viridis_c()
+  
+```
+
+
+### Make a map 
+
+```{r}
+
+jornada_vegetation <- read_sf(here("data_raw", "spatial_vegetation", "doc.kml")) %>% 
+  select(Name) %>% 
+  clean_names()
+
+ggplot(data = jornada_vegetation) +
+  geom_sf(aes(fill = name), color = "white", size = 0.2) +
+  scale_fill_paletteer_d("ggthemes::manyeys") +
+  labs(x = "Longitude", 
+       y = "Latitude", 
+       fill = "Dominant Vegetation") +
+  theme_minimal()
+
 ```
 
