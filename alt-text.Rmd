@@ -1,0 +1,21 @@
+---
+title: "alt text practice"
+author: "Paloma Cartwright"
+date: "19/08/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(palmerpenguins)
+
+```
+
+```{r, fig.alt="Three histograms, one for each species, displaying the number of penguins across each bodymass. Gentoos have the largest size of the penguins"}
+ggplot(penguins, aes(x = body_mass_g)) +
+  geom_histogram(aes(fill = species)) +
+  facet_wrap(~species) +
+  labs(title = "Body Mass of Each Penguin Species")
+```
+
